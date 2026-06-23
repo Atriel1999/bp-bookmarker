@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 BP Book Checklist</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#12121e;color:#e0e0e0;min-height:100vh;display:flex;flex-direction:column}
+
+.header{background:#1a1a2e;border-bottom:1px solid #2a2a4e;padding:10px 16px;display:flex;align-items:center;gap:10px}
+.header h1{font-size:17px;color:#e0a800;flex:1}
+.btn-danger-sm{background:#2a2a4e;border:1px solid #6a2a2a;color:#ff6b6b;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px}
+.btn-danger-sm:hover{background:#4a1a1a}
+.btn-info-sm{background:#2a2a4e;border:1px solid #3a3a6e;color:#4a90d9;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px}
+.btn-info-sm:hover{background:#1a2a3e;border-color:#4a90d9}
+.info-link{display:inline-block;background:#4a90d9;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:bold;text-decoration:none;margin-bottom:14px}
+.info-link:hover{background:#3a80c9}
+.info-note{font-size:13px;color:#aaa;line-height:1.7;background:#12121e;border:1px solid #2a2a4e;border-radius:8px;padding:12px 14px}
+
+.main{flex:1;padding:14px 16px;display:flex;flex-direction:column;gap:10px;max-width:1400px;width:100%;margin:0 auto}
+
+.top-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.book-search-wrap{position:relative;min-width:220px;flex:1;max-width:400px}
+.book-search-wrap input{width:100%;background:#1e1e32;color:#e0e0e0;border:1px solid #3a3a6e;border-radius:8px;padding:9px 14px;font-size:14px;outline:none}
+.book-search-wrap input:focus{border-color:#4a90d9}
+.search-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#1a1a2e;border:1px solid #3a3a6e;border-radius:8px;max-height:240px;overflow-y:auto;z-index:50;display:none}
+.search-dropdown.open{display:block}
+.search-item{padding:8px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #2a2a4e}
+.search-item:last-child{border-bottom:none}
+.search-item:hover{background:#252540}
+.search-item .s-ko{color:#e0e0e0}
+.search-item .s-en{color:#666;font-size:11px;margin-top:2px}
+.search-item .s-cat{color:#4a90d9;font-size:10px}
+.search-highlight{color:#4a90d9;font-weight:bold}
+
+.book-stats{font-size:12px;color:#666;display:flex;gap:14px;flex-wrap:wrap}
+.book-stats span{color:#aaa}
+.stat-done{color:#4CAF50!important}
+.stat-partial{color:#e0a800!important}
+
+.book-filter{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.filter-btn{background:#2a2a4e;border:1px solid #3a3a6e;color:#aaa;padding:5px 12px;border-radius:20px;cursor:pointer;font-size:12px}
+.filter-btn:hover{border-color:#4a90d9;color:#fff}
+.filter-btn.active{background:#4a90d9;color:#fff;border-color:#4a90d9}
+.filter-sep{color:#3a3a6e}
+.filter-collected{background:#2a2a4e;border:1px solid #3a3a6e;color:#aaa;padding:5px 12px;border-radius:20px;cursor:pointer;font-size:12px}
+.filter-collected:hover{border-color:#e0a800;color:#fff}
+.filter-collected.active{background:#e0a800;color:#12121e;border-color:#e0a800;font-weight:bold}
+
+.book-grid{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:8px;align-content:start}
+.book-card{background:#1e1e32;border:1px solid #2a2a4e;border-radius:8px;padding:10px 12px;cursor:pointer;transition:border-color .15s;display:flex;flex-direction:column;gap:4px}
+.book-card:hover{border-color:#4a90d9}
+.book-card.done{border-color:#2a5a2a;background:#1a2a1a}
+.book-card.done:hover{border-color:#4CAF50}
+.book-card.partial{border-color:#5a4a1a;background:#2a2510}
+.book-card.partial:hover{border-color:#e0a800}
+.book-card.has-subtitles{cursor:default}
+.book-card.has-subtitles:hover{border-color:#2a2a4e}
+.book-card.has-subtitles.done:hover{border-color:#2a5a2a}
+.book-card.has-subtitles.partial:hover{border-color:#5a4a1a}
+.book-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.book-ko{font-size:13px;font-weight:bold;color:#e0e0e0;line-height:1.4;flex:1}
+.book-en{font-size:11px;color:#666;line-height:1.3}
+.book-card-bottom{display:flex;justify-content:space-between;align-items:center}
+.book-cat{font-size:10px;color:#4a90d9}
+.book-progress{font-size:12px;font-weight:bold}
+.book-progress.done{color:#4CAF50}
+.book-progress.partial{color:#e0a800}
+.book-progress.none{color:#555}
+.book-check{width:20px;height:20px;border-radius:50%;border:2px solid #3a3a6e;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.book-check.done{background:#4CAF50;border-color:#4CAF50;color:#fff}
+.book-subtitles{display:flex;flex-direction:column;gap:2px;margin-top:8px;padding-top:8px;border-top:1px solid #2a2a4e}
+.subtitle-item{display:flex;align-items:center;gap:7px;cursor:pointer;padding:3px 4px;border-radius:4px}
+.subtitle-item:hover{background:rgba(255,255,255,0.05)}
+.subtitle-check{width:14px;height:14px;border-radius:3px;border:1.5px solid #3a3a6e;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.subtitle-check.done{background:#4CAF50;border-color:#4CAF50;color:#fff}
+.subtitle-label{font-size:11px;color:#999;line-height:1.3}
+.subtitle-item.done .subtitle-label{color:#4CAF50;text-decoration:line-through;opacity:.7}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal{background:#1a1a2e;border:1px solid #3a3a6e;border-radius:12px;padding:24px;min-width:300px;max-width:460px;width:90%}
+.modal h2{color:#ff6b6b;font-size:16px;margin-bottom:12px}
+.modal p{font-size:13px;color:#aaa;line-height:1.6;margin-bottom:4px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.btn-primary{background:#e0a800;color:#12121e;border:none;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer}
+.btn-secondary{background:#2a2a4e;color:#aaa;border:1px solid #3a3a6e;padding:8px 20px;border-radius:6px;font-size:13px;cursor:pointer}
+.btn-danger{background:#4a1a1a;color:#ff6b6b;border:1px solid #6a2a2a;padding:8px 20px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:bold}
+.btn-danger:hover{background:#6a1a1a}
+
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#4CAF50;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:bold;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+
+.empty-msg{color:#555;padding:20px;text-align:center}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:#12121e}
+::-webkit-scrollbar-thumb{background:#3a3a6e;border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📚 BP Book Checklist</h1>
+  <button class="btn-info-sm" onclick="openInfoModal()">📍 책 위치정보</button>
+  <button class="btn-danger-sm" onclick="openResetModal()">🗑️ 초기화</button>
+</div>
+
+<div class="main">
+  <div class="top-row">
+    <div class="book-search-wrap">
+      <input type="text" id="bookSearch" placeholder="책 이름 검색 (한국어 or 영어)..."
+        oninput="onBookSearch(this.value)" onblur="setTimeout(()=>closeDropdown(),150)">
+      <div class="search-dropdown" id="searchDropdown"></div>
+    </div>
+    <div class="book-stats" id="bookStats"></div>
+  </div>
+  <div class="book-filter">
+    <button class="filter-btn active" onclick="setFilter('all',this)">전체</button>
+    <button class="filter-btn" onclick="setFilter('Books &amp; Manuals',this)">📖 Books</button>
+    <button class="filter-btn" onclick="setFilter('Letters &amp; Records',this)">✉️ Letters</button>
+    <button class="filter-btn" onclick="setFilter('Notices &amp; Posters',this)">📄 Notices</button>
+    <button class="filter-btn" onclick="setFilter('Other Readables',this)">📜 Other</button>
+    <span class="filter-sep">|</span>
+    <button class="filter-collected" id="filterCollected" onclick="toggleCollectedFilter(this)">🔲 미수집만 보기</button>
+  </div>
+  <div class="book-grid" id="bookGrid"></div>
+</div>
+
+<div class="modal-overlay" id="modalReset">
+  <div class="modal">
+    <h2>⚠️ 전체 초기화</h2>
+    <p>모든 수집 기록이 삭제됩니다.</p>
+    <p style="color:#ff6b6b;font-size:12px;margin-top:6px">이 작업은 되돌릴 수 없습니다.</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeResetModal()">취소</button>
+      <button class="btn-danger" onclick="confirmReset()">초기화</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalInfo">
+  <div class="modal">
+    <h2 style="color:#4a90d9">📍 책 위치정보</h2>
+    <a class="info-link" href="https://starresonance.th.gl/" target="_blank" rel="noopener">🔗 Star Resonance 위키 바로가기</a>
+    <div class="info-note">
+      인게임 책 획득 위치는 위키를 참고하세요.<br>
+      <br>
+      📌 <strong style="color:#e0e0e0">수집 설정 방법</strong><br>
+      Documents 카테고리 이외의 책들은<br>
+      모두 <strong style="color:#e0a800">None</strong>으로 변경하세요.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeInfoModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const LS_KEY = 'bp_book_progress';
+
+const MASTER = [{"id":1001,"title":"Sea Lyrics Collection","category":"Books & Manuals","ko":"바다의 노래 가사집","total":1,"subtitles":[]},{"id":1002,"title":"Thoughts of the Long-Lived - Some Ramblings About Life","category":"Books & Manuals","ko":"장수한 이의 사색집-인생에 관한 부질없는 이야기","total":1,"subtitles":[]},{"id":1003,"title":"The Mission of Humans","category":"Books & Manuals","ko":"인간의 사명","total":1,"subtitles":[]},{"id":1004,"title":"Asterleeds Travel Guide","category":"Books & Manuals","ko":"아스텔리즈 여행 가이드","total":3,"subtitles":["Asterleeds Travel Guide (I)","Asterleeds Travel Guide (II)","Asterleeds Travel Guide (III)"]},{"id":1005,"title":"Gourmet Adventures at the Port","category":"Books & Manuals","ko":"항구 미식 대모험","total":1,"subtitles":[]},{"id":1010,"title":"Airona's Legend: Deluxe Illustrated Edition","category":"Books & Manuals","ko":"아이로나 전설 - 양장본 삽화판","total":1,"subtitles":[]},{"id":1013,"title":"Atlas of Demi-Humans: Goblin Edition","category":"Books & Manuals","ko":"아인족 도감 - 고블린편","total":1,"subtitles":[]},{"id":1014,"title":"Trend Guide: Spring/Summer Combined","category":"Books & Manuals","ko":"트렌드세터 - 봄·여름 합본","total":1,"subtitles":[]},{"id":1015,"title":"Asterleeds Culinary Journey","category":"Books & Manuals","ko":"아스텔리즈 미식 기행","total":1,"subtitles":[]},{"id":1025,"title":"White Wolf","category":"Books & Manuals","ko":"하얀 늑대","total":1,"subtitles":[]},{"id":1026,"title":"Kanamia Customs Study","category":"Books & Manuals","ko":"카나미아 세시풍속","total":5,"subtitles":["Kanamia Customs Study I","Kanamia Customs Study II","Kanamia Customs Study III","Kanamia Customs Study IV","Kanamia Customs Study V"]},{"id":1031,"title":"Origin of the Mask","category":"Books & Manuals","ko":"가면의 유래","total":1,"subtitles":[]},{"id":1037,"title":"Survivors of the Andra","category":"Books & Manuals","ko":"안드라호의 생존자들","total":1,"subtitles":[]},{"id":1038,"title":"Pale Azure Lake","category":"Books & Manuals","ko":"민다로 호수","total":1,"subtitles":[]},{"id":1040,"title":"After the Fall","category":"Books & Manuals","ko":"쓰러진 후에","total":1,"subtitles":[]},{"id":1041,"title":"Mystery of Golem","category":"Books & Manuals","ko":"골렘의 수수께끼","total":1,"subtitles":[]},{"id":1047,"title":"Conspiracy Behind the Peace Treaty","category":"Books & Manuals","ko":"평화 협정 뒤의 음모","total":1,"subtitles":[]},{"id":1048,"title":"Waterlogged Record Book","category":"Books & Manuals","ko":"물에 젖은 기록부","total":1,"subtitles":[]},{"id":1052,"title":"The Dragon Hunter of Regnus","category":"Books & Manuals","ko":"레그나스의 용 사냥꾼","total":1,"subtitles":[]},{"id":1056,"title":"Heart of the Ocean Liner","category":"Books & Manuals","ko":"대양 횡단 거선의 코어","total":1,"subtitles":[]},{"id":1059,"title":"Sad News: I Found Ancient Treasure","category":"Books & Manuals","ko":"비보: 길드에서 쫓겨나 바다에 버려진 후 고대 보물을 발견하다","total":1,"subtitles":[]},{"id":1060,"title":"What to Do When You Can't Beat an Ogre?","category":"Books & Manuals","ko":"오우거를 이길 수 없을 때는 어쩌지?","total":1,"subtitles":[]},{"id":1061,"title":"Crab Fantasia","category":"Books & Manuals","ko":"꽃게환상곡","total":1,"subtitles":[]},{"id":1062,"title":"The Founding of Asterleeds","category":"Books & Manuals","ko":"아스텔리즈 건설기","total":1,"subtitles":[]},{"id":1063,"title":"Former Top Artisan Now Fixing Boilerst","category":"Books & Manuals","ko":"전직 수석 대장장이, 지하실에서 보일러를 수리하다","total":1,"subtitles":[]},{"id":1064,"title":"The Heiress's Engagement Is Actually About Me?!","category":"Books & Manuals","ko":"상회 아가씨의 약혼식이 나와 관련이 있다고?!","total":1,"subtitles":[]},{"id":1066,"title":"The Seagull","category":"Books & Manuals","ko":"흰 갈매기","total":1,"subtitles":[]},{"id":1067,"title":"How to Chat with a Cat","category":"Books & Manuals","ko":"고양이와 대화하는 방법","total":3,"subtitles":["How to Chat with a Cat I","How to Chat with a Cat II","How to Chat with a Cat III"]},{"id":1068,"title":"Hidden Street Investigation","category":"Books & Manuals","ko":"숨겨진 거리 조사","total":1,"subtitles":[]},{"id":1069,"title":"The Fall of the Pirates","category":"Books & Manuals","ko":"해적 멸망기","total":1,"subtitles":[]},{"id":1070,"title":"Land of the Night","category":"Books & Manuals","ko":"밤의 나라","total":1,"subtitles":[]},{"id":1071,"title":"Energy Division: A Different Perspective","category":"Books & Manuals","ko":"에너지 팀: 또 다른 시각","total":1,"subtitles":[]},{"id":1072,"title":"Crabs: The Hideous Sea Bugs","category":"Books & Manuals","ko":"꽃게, 못생긴 바다 벌레","total":3,"subtitles":["Crabs: The Hideous Sea Bugs I","Crabs: The Hideous Sea Bugs II","Crabs: The Hideous Sea Bugs III"]},{"id":1081,"title":"Radiant Stone Enthusiast Guide - Standard Weapons Edition","category":"Books & Manuals","ko":"광휘석 애호가 가이드 - 제식 무기편","total":1,"subtitles":[]},{"id":1083,"title":"Get-Rich-Quick in Asterleeds","category":"Books & Manuals","ko":"아스텔리즈 일확천금 계획","total":1,"subtitles":[]},{"id":1087,"title":"Taste Revolution: Sewer Cuisine Unveiled","category":"Books & Manuals","ko":"미각 혁명: 하수도 미식 탐구","total":1,"subtitles":[]},{"id":1092,"title":"The Unlucky Pirate","category":"Books & Manuals","ko":"불운의 해적","total":1,"subtitles":[]},{"id":1093,"title":"Tales of the Probes","category":"Books & Manuals","ko":"탐지기 이야기","total":1,"subtitles":[]},{"id":1094,"title":"The Iron Mask Incident","category":"Books & Manuals","ko":"철가면 인간 습격 사건","total":4,"subtitles":["The Iron Mask Incident I","The Iron Mask Incident II","The Iron Mask Incident III","The Iron Mask Incident IV"]},{"id":1095,"title":"Hypotheses on the Formation of Submarine Voids","category":"Books & Manuals","ko":"해저 동굴 형성 가설","total":2,"subtitles":["Hypotheses on the Formation of Submarine Voids I","Hypotheses on the Formation of Submarine Voids II"]},{"id":1098,"title":"Asterleeds, Land of Freedom","category":"Books & Manuals","ko":"아스텔리즈, 자유의 나라","total":1,"subtitles":[]},{"id":1100,"title":"Dominate the Dance Floor in Half an Hour","category":"Books & Manuals","ko":"30분 만에 댄스 플로어 정복하기","total":2,"subtitles":["Ladies","Gentlemen"]},{"id":1103,"title":"Stay or Go: The Byrnhalds","category":"Books & Manuals","ko":"장로들의 사고방식","total":1,"subtitles":[]},{"id":1105,"title":"Don't Blow Up the Machine! A Guide to Crafting","category":"Books & Manuals","ko":"로봇을 터뜨리지 마라! 신입 대장장이 가이드","total":7,"subtitles":["Legacy Artisan","Architectural Artisan","Engine Artisan","Forging Artisan","Artisan Levels","Where Did the Bapharian Legacy Come From?","Energy Division"]},{"id":1106,"title":"Open Day for Artisan","category":"Books & Manuals","ko":"대장장이들의 오픈데이","total":1,"subtitles":[]},{"id":1108,"title":"The Hidden Value of Dragonlight Core","category":"Books & Manuals","ko":"드래곤 라이트 코어의 또 다른 가치","total":1,"subtitles":[]},{"id":1109,"title":"The Hermit","category":"Books & Manuals","ko":"은둔자","total":1,"subtitles":[]},{"id":1110,"title":"Let's Talk About Fantasy","category":"Books & Manuals","ko":"이매진에 대한 이야기","total":1,"subtitles":[]},{"id":1112,"title":"Technology Advances with Every Discovery","category":"Books & Manuals","ko":"과학 연구는 발굴과 함께 발전한다","total":1,"subtitles":[]},{"id":1113,"title":"Don't Touch That! It Might Go Crazy!","category":"Books & Manuals","ko":"만지지 마세요! 폭주합니다!","total":1,"subtitles":[]},{"id":1118,"title":"Specialty Drinks of the Continent of Regnus","category":"Books & Manuals","ko":"레그나스 대륙 특제 음료","total":1,"subtitles":[]},{"id":1123,"title":"The Merchant Guild's Hidden Dealings","category":"Books & Manuals","ko":"상회의 은밀한 내막","total":1,"subtitles":[]},{"id":1127,"title":"A Civilization Built on Ruins","category":"Books & Manuals","ko":"유적 위에 세워진 문명","total":1,"subtitles":[]},{"id":1130,"title":"The Webber Family","category":"Books & Manuals","ko":"웨버 가문","total":1,"subtitles":[]},{"id":1134,"title":"Poems of the Starfall Night","category":"Books & Manuals","ko":"별이 내리는 밤의 시집","total":1,"subtitles":[]},{"id":1141,"title":"The Shifting Sands of Kanamia","category":"Books & Manuals","ko":"모래처럼 흘러간 카나미아의 세월","total":1,"subtitles":[]},{"id":1143,"title":"The Way Elders Think","category":"Books & Manuals","ko":"장생목의 비밀","total":1,"subtitles":[]},{"id":1144,"title":"Tribal Oral Traditions: Elder Pine Mushroom's Teachings","category":"Books & Manuals","ko":"부락 구전・할미 나무 버섯의 교훈","total":1,"subtitles":[]},{"id":1145,"title":"The Secret of the Longevity Tree","category":"Books & Manuals","ko":"장생목의 비밀","total":1,"subtitles":[]},{"id":1148,"title":"Celebration of the Fiery Moon Omens","category":"Books & Manuals","ko":"사계절 축제","total":2,"subtitles":["Celebration of the Fiery Moon Omens - Volume I","Celebration of the Fiery Moon Omens - Volume II"]},{"id":1149,"title":"A Tribe Without Currency","category":"Books & Manuals","ko":"화폐 없는 부락","total":1,"subtitles":[]},{"id":1150,"title":"Ritual of the Four Seasons","category":"Books & Manuals","ko":"사계절 축제","total":1,"subtitles":[]},{"id":1151,"title":"The Tale of Kanamia's Shrimpshrooms","category":"Books & Manuals","ko":"만월의 상징","total":1,"subtitles":[]},{"id":1152,"title":"Symbol of the Full Moon","category":"Books & Manuals","ko":"이방인의 노래 - 카나미아 메모장","total":1,"subtitles":[]},{"id":1153,"title":"When the Lunar Harp Meets the Pigskin Drum","category":"Books & Manuals","ko":"카나미아 새우 버섯 이야기","total":1,"subtitles":[]},{"id":1156,"title":"Song of the Outsider - Kanamia Journal","category":"Books & Manuals","ko":"이방인의 노래 - 카나미아 메모장","total":1,"subtitles":[]},{"id":1157,"title":"Hakrei's Five Thousand Hides","category":"Books & Manuals","ko":"하클레이의 가죽 5,000장","total":1,"subtitles":[]},{"id":1161,"title":"The White Wolf Mystery: An Inquiry into the Existence of Kanamia Ancestral Spirits","category":"Books & Manuals","ko":"하얀 늑대의 수수께끼: 카나미아 선조의 혼은 실존하는가","total":1,"subtitles":[]},{"id":1162,"title":"A Study of Totem Culture in Kanamia","category":"Books & Manuals","ko":"카나미아 토템 문화 고찰","total":1,"subtitles":[]},{"id":1163,"title":"Kanamia's Seven Sacred Laws","category":"Books & Manuals","ko":"카나미아의 일곱 율법","total":7,"subtitles":["The Seven Sacred Laws of Kanamia - Part I","The Seven Sacred Laws of Kanamia - Part II","The Seven Sacred Laws of Kanamia - Part III","The Seven Sacred Laws of Kanamia - Part IV","The Seven Sacred Laws of Kanamia - Part V","The Seven Sacred Laws of Kanamia - Part VI","The Seven Sacred Laws of Kanamia - Part VII"]},{"id":1166,"title":"The Kanamia White Wolf: A Hypothesis","category":"Books & Manuals","ko":"카나미아 하얀 늑대 고찰: 하나의 가설","total":1,"subtitles":[]},{"id":1171,"title":"The Light of the Priest's Journey","category":"Books & Manuals","ko":"사제의 길을 밝히는 빛","total":1,"subtitles":[]},{"id":1172,"title":"The Scavengers","category":"Books & Manuals","ko":"고물상들","total":1,"subtitles":[]},{"id":1173,"title":"A Letter to the Chief Priest","category":"Books & Manuals","ko":"대신관에게 보내는 편지","total":1,"subtitles":[]},{"id":1174,"title":"The Scavengers' Guide to 'Pointless' Survival","category":"Books & Manuals","ko":"고물상들의 '무의미한' 생존 법칙","total":1,"subtitles":[]},{"id":1176,"title":"On the Benefits of Trading with Scavengers","category":"Books & Manuals","ko":"고물상과 거래하는 묘미에 대하여","total":1,"subtitles":[]},{"id":1178,"title":"Peacegrass of a Foreign Land","category":"Books & Manuals","ko":"이방의 평화초","total":1,"subtitles":[]},{"id":1179,"title":"Tales of the Sislesa Mine","category":"Books & Manuals","ko":"시슬레사 광산 괴담","total":3,"subtitles":["The Mine Tunnel That Appears at Night","The Singing Ghost Girl","Mine Survival Handbook"]},{"id":1181,"title":"The Bahamar Obelisk","category":"Books & Manuals","ko":"바하마르의 오벨리스크","total":5,"subtitles":["The Bahamar Obelisk Prologue","The Bahamar Obelisk I","The Bahamar Obelisk II","The Bahamar Obelisk III","The Bahamar Obelisk IV"]},{"id":1183,"title":"Bahamar Calamity Archives","category":"Books & Manuals","ko":"바하마르 고원 재해 서류","total":4,"subtitles":["Volume I: The Highland Calamity and the Ancient Seal","Volume II: The Witch's Hatred Unveiled","Volume III: Lingering Shadows and Warnings"]},{"id":1185,"title":"New Ideas for Post-Plague Intervention Based on Shared Dreams","category":"Books & Manuals","ko":"꿈 공유를 통한 환상 재해 사후 개입의 새로운 접근","total":4,"subtitles":["New Approaches to Post-Plague Intervention I","New Approaches to Post-Plague Intervention II","New Approaches to Post-Plague Intervention IV"]},{"id":1189,"title":"Visions Born of the Heart","category":"Books & Manuals","ko":"마음 깊은 곳에서 비롯된 환상","total":1,"subtitles":[]},{"id":1193,"title":"Echoes Beneath the Earth","category":"Books & Manuals","ko":"지하 메아리","total":1,"subtitles":[]},{"id":1195,"title":"Veteran Miners' Field Guide","category":"Books & Manuals","ko":"늙은 광부들의 실용 노트","total":3,"subtitles":["Silent Operation Techniques","Isolation Gate Handling Guide","Vein Processing Techniques"]},{"id":1219,"title":"The Rift","category":"Books & Manuals","ko":"균열","total":1,"subtitles":[]},{"id":1220,"title":"Sleepwhisper","category":"Books & Manuals","ko":"잠언","total":1,"subtitles":[]},{"id":1006,"title":"Street Speech Collection","category":"Letters & Records","ko":"가두연설문 모음집","total":1,"subtitles":[]},{"id":1008,"title":"Bapharian Legacy Expense Receipt No. 30.472","category":"Letters & Records","ko":"제30,472차 버페리아 유산 연구비 영수증","total":1,"subtitles":[]},{"id":1009,"title":"Annual Quest Report","category":"Letters & Records","ko":"모험가 연간 퀘스트 완료율 통계 보고서","total":1,"subtitles":[]},{"id":1012,"title":"Diary of Anger","category":"Letters & Records","ko":"분노로 가득 찬 일기","total":1,"subtitles":[]},{"id":1016,"title":"Today's To-Do List","category":"Letters & Records","ko":"데일리 퀘스트","total":1,"subtitles":[]},{"id":1017,"title":"A Stack of Love Letters","category":"Letters & Records","ko":"연애편지 1묶음","total":1,"subtitles":[]},{"id":1018,"title":"Unfinished Letter","category":"Letters & Records","ko":"르네와 아마도의 눈덩이 쿠키 레시피","total":1,"subtitles":[]},{"id":1019,"title":"Snowball Cookie Recipe by René and Amado","category":"Letters & Records","ko":"엄마에게서 온 편지","total":1,"subtitles":[]},{"id":1020,"title":"Letter from Mom","category":"Letters & Records","ko":"누나에게서 온 편지","total":1,"subtitles":[]},{"id":1021,"title":"Letter from Sister","category":"Letters & Records","ko":"엄마에게 보내는 답장 초안","total":1,"subtitles":[]},{"id":1022,"title":"Draft of a Reply to Mom","category":"Letters & Records","ko":"안나에게 보내는 답장 초안","total":1,"subtitles":[]},{"id":1023,"title":"Draft of a Reply to Anna","category":"Letters & Records","ko":"맹약의 순간","total":1,"subtitles":[]},{"id":1027,"title":"Time of Forming an Alliance","category":"Letters & Records","ko":"자바의 편지","total":1,"subtitles":[]},{"id":1028,"title":"Jabba's Letters","category":"Letters & Records","ko":"하얀 늑대가 떠날 때","total":1,"subtitles":[]},{"id":1029,"title":"White Wolf's Departure","category":"Letters & Records","ko":"밀밭에 뭔가 숨어있다!","total":1,"subtitles":[]},{"id":1032,"title":"Something's Hiding in the Wheat Field!","category":"Letters & Records","ko":"의원 경선 후보 조사","total":1,"subtitles":[]},{"id":1033,"title":"Election Campaign Investigation","category":"Letters & Records","ko":"민스터혼 여행 가이드(3차 개정판)","total":1,"subtitles":[]},{"id":1034,"title":"Minsterhorn Travel Guide (Draft 3)","category":"Letters & Records","ko":"카나미아족 반대파","total":1,"subtitles":[]},{"id":1035,"title":"Kanamia Resistance","category":"Letters & Records","ko":"민스터혼, 슬픔의 땅","total":1,"subtitles":[]},{"id":1036,"title":"Minsterhorn: Land of Sorrows","category":"Letters & Records","ko":"오랜 친구 루미아에게 보내는 편지","total":1,"subtitles":[]},{"id":1039,"title":"Patrol Duty Log","category":"Letters & Records","ko":"순찰대 근무 기록","total":2,"subtitles":["Patrol Record, Page 1","Patrol Record, Page 2"]},{"id":1042,"title":"An Investigation into Hero's Herb","category":"Letters & Records","ko":"영웅초에 대한 조사","total":1,"subtitles":[]},{"id":1043,"title":"Lost Letters","category":"Letters & Records","ko":"잃어버린 편지","total":1,"subtitles":[]},{"id":1044,"title":"Maintenance Record","category":"Letters & Records","ko":"하트가 그려진 편지","total":1,"subtitles":[]},{"id":1045,"title":"The Letter with a Heart Drawing","category":"Letters & Records","ko":"야생 용 목격 보고서","total":1,"subtitles":[]},{"id":1049,"title":"Wild Dragon Witness Report","category":"Letters & Records","ko":"야생 용 목격 보고서","total":1,"subtitles":[]},{"id":1050,"title":"Hartson's Letter to Home","category":"Letters & Records","ko":"하트슨의 가신","total":1,"subtitles":[]},{"id":1054,"title":"Diary of the Nameless One","category":"Letters & Records","ko":"무명인의 일기","total":1,"subtitles":[]},{"id":1055,"title":"Elders of Kanamia","category":"Letters & Records","ko":"카나미아의 장로들","total":1,"subtitles":[]},{"id":1057,"title":"Paper Covered in Slime","category":"Letters & Records","ko":"점액으로 뒤덮인 종이 조각","total":1,"subtitles":[]},{"id":1078,"title":"Medical Certificate","category":"Letters & Records","ko":"'진단서'","total":1,"subtitles":[]},{"id":1084,"title":"Candy Wrapper Chronicles","category":"Letters & Records","ko":"사탕 포장지 기록","total":1,"subtitles":[]},{"id":1089,"title":"Sewage-Stained Letter","category":"Letters & Records","ko":"오수에 얼룩진 편지","total":1,"subtitles":[]},{"id":1091,"title":"Webber Energy Network Operation Log","category":"Letters & Records","ko":"웨버 에너지 네트워크 조작 기록","total":1,"subtitles":[]},{"id":1096,"title":"Mystery of the Missing Byrnhald Envoy","category":"Letters & Records","ko":"번하르트의 사자 실종 의혹","total":1,"subtitles":[]},{"id":1097,"title":"Shoemaker's Heir Returns After 30 Years Missing","category":"Letters & Records","ko":"30년간 실종된 구두장이 집안의 자손이 마침내 고향으로 돌아오다","total":1,"subtitles":[]},{"id":1102,"title":"Hidden Homework","category":"Letters & Records","ko":"몰래 숨겨둔 숙제","total":1,"subtitles":[]},{"id":1104,"title":"Shield Generator Blueprint","category":"Letters & Records","ko":"실드 생성 장치 구조","total":1,"subtitles":[]},{"id":1114,"title":"Ocean Hill Immersive Theater: 127s","category":"Letters & Records","ko":"오션 힐 몰입형 극장: 127초의 명작","total":2,"subtitles":["Ocean Hill Immersive Theater: 127s of Legend\" Part I","Ocean Hill Immersive Theater: 127s of Legend\" Part II"]},{"id":1122,"title":"Proposal: Add Artist & Sewer-dweller Representative Seats","category":"Letters & Records","ko":"아티스트와 하수도 주민 대표석 추가 설치 요청","total":1,"subtitles":[]},{"id":1129,"title":"To the Honorable Jon Dandelion","category":"Letters & Records","ko":"존・단델리온 각하님께","total":1,"subtitles":[]},{"id":1131,"title":"Tina's File","category":"Letters & Records","ko":"티나의 서류","total":2,"subtitles":["Tina's File - I","Tina's File - II"]},{"id":1136,"title":"Dark Mist Legion Investigation Record","category":"Letters & Records","ko":"서프라이즈 카드 게임 규칙","total":1,"subtitles":[]},{"id":1138,"title":"Rules of the Surprise Card Game","category":"Letters & Records","ko":"주둔 일지 남은 페이지","total":1,"subtitles":[]},{"id":1139,"title":"Fragment of Garrison Log","category":"Letters & Records","ko":"제발 저를 돌려보내 주세요!","total":1,"subtitles":[]},{"id":1154,"title":"Please Send Me Back!","category":"Letters & Records","ko":"루카에게 보내는 편지","total":1,"subtitles":[]},{"id":1155,"title":"A Letter to Luca","category":"Letters & Records","ko":"오랜 친구 루미아에게 보내는 편지","total":1,"subtitles":[]},{"id":1158,"title":"Book of Counsel: New Moon Scroll","category":"Letters & Records","ko":"간언서・삭월권","total":1,"subtitles":[]},{"id":1159,"title":"Book of Counsel: Sacred Spirit Scroll","category":"Letters & Records","ko":"간언서・성령권","total":1,"subtitles":[]},{"id":1160,"title":"Book of Sin: The Transgressors","category":"Letters & Records","ko":"죄의 기록・일탈자","total":4,"subtitles":["Book of Sin: The Transgressors I","Book of Sin: The Transgressors II","Book of Sin: The Transgressors III","Book of Sin: The Transgressors IV"]},{"id":1165,"title":"Waters of the Forbidden Land","category":"Letters & Records","ko":"금지된 땅의 물","total":1,"subtitles":[]},{"id":1167,"title":"A Letter to Old Friend Lumia","category":"Letters & Records","ko":"색 바랜 가죽 두루마리","total":1,"subtitles":[]},{"id":1168,"title":"Aged Hide Scroll","category":"Letters & Records","ko":"유실된 가죽 두루마리","total":1,"subtitles":[]},{"id":1169,"title":"Lost Hide Scroll","category":"Letters & Records","ko":"기이한 나무껍질 부식 조각","total":1,"subtitles":[]},{"id":1170,"title":"Strange Bark Inscription","category":"Letters & Records","ko":"윌프 님에게","total":1,"subtitles":[]},{"id":1186,"title":"Letter to Mr. Wilp","category":"Letters & Records","ko":"마르셀에게 보내는 편지","total":1,"subtitles":[]},{"id":1191,"title":"Letter to Marcel","category":"Letters & Records","ko":"구겨진 쪽지","total":1,"subtitles":[]},{"id":1192,"title":"Crumpled Note","category":"Letters & Records","ko":"분실된 병사의 고향 편지","total":1,"subtitles":[]},{"id":1196,"title":"Lost Soldier's Letter Home","category":"Letters & Records","ko":"발레리아에게 보내는 편지","total":1,"subtitles":[]},{"id":1198,"title":"Letter to Valeria","category":"Letters & Records","ko":"어느 날, 언니에게서 온 답장","total":1,"subtitles":[]},{"id":1215,"title":"A Reply Sent to Sister (Undated)","category":"Letters & Records","ko":"어느 날, 언니에게 보낸 답장","total":1,"subtitles":[]},{"id":1216,"title":"A Reply to Mother (Undated)","category":"Letters & Records","ko":"어느 날, 어머니에게 보낸 답장","total":1,"subtitles":[]},{"id":1217,"title":"A Draft Sent by Mistake","category":"Letters & Records","ko":"무작정 발송된 초안","total":1,"subtitles":[]},{"id":1218,"title":"A Letter from Sister (Undated)","category":"Letters & Records","ko":"어느 날, 언니에게서 온 답장","total":1,"subtitles":[]},{"id":1221,"title":"A Merchant's Complaints","category":"Letters & Records","ko":"어느 상인의 푸념","total":1,"subtitles":[]},{"id":1222,"title":"Lost Painting Notes","category":"Letters & Records","ko":"유실된 그림 노트","total":6,"subtitles":["Lost Painting Notes I","Lost Painting Notes II","Lost Painting Notes III","Lost Painting Notes IV","Lost Painting Notes V","Finished Painting"]},{"id":1024,"title":"Tricky Problem","category":"Notices & Posters","ko":"까다로운 문제","total":1,"subtitles":[]},{"id":1065,"title":"A Call to All Citizens","category":"Notices & Posters","ko":"안드라 상륙전 격전지를 찾은 모든 방문객에게","total":1,"subtitles":[]},{"id":1073,"title":"The Crime and Redemption Beneath the Street Lamp Performance Poster","category":"Notices & Posters","ko":"가로등 아래의 죄와 구원 공연 포스터","total":1,"subtitles":[]},{"id":1074,"title":"Laugh! Drink! Party All Night! Performance Poster","category":"Notices & Posters","ko":"웃고! 마시고! 밤새 즐겨라! 공연 포스터","total":1,"subtitles":[]},{"id":1075,"title":"The Nobles of Byrnhald Performance Poster","category":"Notices & Posters","ko":"번하르트 귀족 공연 포스터","total":1,"subtitles":[]},{"id":1076,"title":"A Night with Kleisler Performance Poster","category":"Notices & Posters","ko":"클레이슬러의 밤 공연 포스터","total":1,"subtitles":[]},{"id":1077,"title":"The Puppet with Enamel Eyes Performance Poster","category":"Notices & Posters","ko":"에나멜 눈동자의 목각 인형 공연 포스터","total":1,"subtitles":[]},{"id":1079,"title":"Shocking! Eerie Sounds from Below!","category":"Notices & Posters","ko":"충격! 지하에서 들려오는 기괴한 소리!","total":1,"subtitles":[]},{"id":1086,"title":"Lerom's Ultimate Dignity Package - Death Over Dishonor","category":"Notices & Posters","ko":"르롬의 궁극 존엄 세트 - 살보다 죽음이 더 귀하다","total":1,"subtitles":[]},{"id":1090,"title":"Duel in the Steel Cage","category":"Notices & Posters","ko":"철장 감옥 아레나 결투","total":1,"subtitles":[]},{"id":1099,"title":"Jenny's Mysterious Strength","category":"Notices & Posters","ko":"제니의 신비한 힘","total":1,"subtitles":[]},{"id":1101,"title":"Awaken! Mighty Fitter!","category":"Notices & Posters","ko":"각성하라! 집게사!","total":1,"subtitles":[]},{"id":1111,"title":"7th Artisan Expo: Introduction","category":"Notices & Posters","ko":"제7회 대장장이 박람회 선도편","total":1,"subtitles":[]},{"id":1115,"title":"The Miser Performance Poster","category":"Notices & Posters","ko":"자린고비 공연 포스터","total":1,"subtitles":[]},{"id":1116,"title":"Spring-Leg Jack Performance Poster","category":"Notices & Posters","ko":"스프링 다리 잭 공연 포스터","total":1,"subtitles":[]},{"id":1117,"title":"Webber Energy Network Hazard: The Sewer Crisis","category":"Notices & Posters","ko":"웨버 에너지 네트워크 위험 요소: 하수도 위기","total":1,"subtitles":[]},{"id":1119,"title":"A One-Day Tour of Asterleeds","category":"Notices & Posters","ko":"아스텔리즈 일일 투어","total":1,"subtitles":[]},{"id":1120,"title":"Ocean Hill Museum: New Exhibit Season","category":"Notices & Posters","ko":"오션 힐 박물관 새 전시 시즌","total":1,"subtitles":[]},{"id":1121,"title":"Your Personalized Stress Management Plan","category":"Notices & Posters","ko":"당신만의 스트레스 맞춤 관리 방안","total":1,"subtitles":[]},{"id":1124,"title":"Wanted: Dr. Flame-Eye","category":"Notices & Posters","ko":"수배령: 플레임아이 박사","total":1,"subtitles":[]},{"id":1125,"title":"Wanted: Lady Penelope","category":"Notices & Posters","ko":"수배령: 페넬로프 부인","total":1,"subtitles":[]},{"id":1126,"title":"Wanted: Iron-Lung Jayden","category":"Notices & Posters","ko":"수배령: 강철 폐 잭","total":1,"subtitles":[]},{"id":1128,"title":"Plains Hunting Regulations and Poaching Warning","category":"Notices & Posters","ko":"평원 사냥 관리 규정 및 밀렵 위험 안내","total":1,"subtitles":[]},{"id":1132,"title":"Opening Ceremony Program List","category":"Notices & Posters","ko":"개막식 프로그램 목록","total":1,"subtitles":[]},{"id":1133,"title":"Exclusive Menu for Seabreeze Festival","category":"Notices & Posters","ko":"해풍절 한정 메뉴","total":1,"subtitles":[]},{"id":1135,"title":"Shrimp Daily","category":"Notices & Posters","ko":"샤샤 데일리","total":1,"subtitles":[]},{"id":1137,"title":"Cruise Activity Schedule","category":"Notices & Posters","ko":"유람선 이벤트 시간표","total":1,"subtitles":[]},{"id":1142,"title":"Person missing! The Mushroom Elder Trali appears!","category":"Notices & Posters","ko":"긴급 수색! 나무 버섯 장로 출현!","total":1,"subtitles":[]},{"id":1146,"title":"Mounted Grand Hunt!","category":"Notices & Posters","ko":"라이드 사냥 대회!","total":1,"subtitles":[]},{"id":1147,"title":"Kanamia Caprahorn Race","category":"Notices & Posters","ko":"카나미아 뿔엄소 대회","total":1,"subtitles":[]},{"id":1164,"title":"Artisan Guild Frontier Market","category":"Notices & Posters","ko":"대장장이 길드 선행 판매","total":1,"subtitles":[]},{"id":1175,"title":"The Flyer for the Spinning Rudder","category":"Notices & Posters","ko":"스피닝 러더 홍보 전단","total":1,"subtitles":[]},{"id":1177,"title":"To all visitors to the ruins of Andra Landing Battle","category":"Notices & Posters","ko":"안드라 상륙전 유적 방문객에게","total":1,"subtitles":[]},{"id":1182,"title":"Wanted: Geronimo the Hammersmith","category":"Notices & Posters","ko":"수배령: 망치 대장장이 헤로니모","total":1,"subtitles":[]},{"id":1184,"title":"Pilgrimage to Bahamar","category":"Notices & Posters","ko":"바하마르 고원 순례 투어","total":5,"subtitles":["Tour Guide I","Tour Guide II","Tour Guide III","Route Guide","Ismark"]},{"id":1187,"title":"Wanted: Nael the Illusionist","category":"Notices & Posters","ko":"수배령: 환상술사 네일","total":1,"subtitles":[]},{"id":1188,"title":"Wanted: Darya the Starsoul Flask Thief","category":"Notices & Posters","ko":"수배령: 성혼병 괴도 다야","total":1,"subtitles":[]},{"id":1194,"title":"Shocking! Captain Reiner's New Boots Stolen by a Mine Rat!","category":"Notices & Posters","ko":"충격! 라이너 대장의 새 장화가 광산 쥐에게 물려 갔다!","total":1,"subtitles":[]},{"id":1007,"title":"When in Doubt, Test It Out!","category":"Other Readables","ko":"의문이 든다면 한번 시험해 보세요!","total":1,"subtitles":[]},{"id":1011,"title":"Mind-Blowing Little Thoughts","category":"Other Readables","ko":"마음 깊이 울리는 생각","total":6,"subtitles":["Super Mind-Blowing Little Thoughts, Article 7","Super Mind-Blowing Little Thoughts, Article 9","Super Mind-Blowing Little Thoughts, Article 22","Super Mind-Blowing Little Thoughts, Article 23","Super Mind-Blowing Little Thoughts, Article 29","Super Mind-Blowing Little Thoughts, Article 76"]},{"id":1030,"title":"Oh, Chieftain","category":"Other Readables","ko":"족장님, 족장님","total":1,"subtitles":[]},{"id":1046,"title":"Facing the Enemy","category":"Other Readables","ko":"적은 이쪽에 있다","total":1,"subtitles":[]},{"id":1051,"title":"Procurement List","category":"Other Readables","ko":"구매 목록","total":1,"subtitles":[]},{"id":1058,"title":"Twilight Secrets Diamond Appraisal Certificate","category":"Other Readables","ko":"「황혼의 비밀」 다이아몬드 감정서","total":1,"subtitles":[]},{"id":1080,"title":"Burnt IOU Note","category":"Other Readables","ko":"그을린 흔적이 있는 채무 목록","total":1,"subtitles":[]},{"id":1082,"title":"Universal Combat Potion (Type III)","category":"Other Readables","ko":"만능 격투약 (3)형","total":1,"subtitles":[]},{"id":1085,"title":"Water-Resistant Map Lost by Someone","category":"Other Readables","ko":"누군가가 흘린 방수 지도","total":1,"subtitles":[]},{"id":1088,"title":"Rusty Nails in the Bone","category":"Other Readables","ko":"뼛속까지 박힌 녹슨 못, 죽기 전까지 멈추지 않는다!","total":1,"subtitles":[]},{"id":1107,"title":"Experimental Model Application","category":"Other Readables","ko":"대장장이 길드 실험 모델 신청서","total":1,"subtitles":[]},{"id":1140,"title":"Mind-Blowing Thoughts","category":"Other Readables","ko":"마음 깊이 울리는 소소한 생각","total":10,"subtitles":["Mind-Blowing Thoughts, No. 77","Mind-Blowing Thoughts, No. 79","Mind-Blowing Thoughts, No. 81","Mind-Blowing Thoughts, No. 86","Mind-Blowing Thoughts, No. 89","Mind-Blowing Thoughts, No. 90","Mind-Blowing Thoughts No. 93","Mind-Blowing Thoughts No. 94","Mind-Blowing Thoughts No. 95","Mind-Blowing Thoughts No. 115"]},{"id":1180,"title":"The Art of Absolute Tongue","category":"Other Readables","ko":"궁극 완전 완벽 언어 예술","total":5,"subtitles":["The Art of Absolute Tongue I","The Art of Absolute Tongue III","The Art of Absolute Tongue V","The Art of Absolute Tongue VII","The Art of Absolute Tongue IX"]},{"id":1190,"title":"The One True Theory of Everything","category":"Other Readables","ko":"모든 것에 대한 유일한 정답","total":3,"subtitles":["The One True Theory of Everything XII","The One True Theory of Everything XXXVI","The One True Theory of Everything XLVIII"]},{"id":1197,"title":"Torn Diary Pages","category":"Other Readables","ko":"찢어진 일기장","total":1,"subtitles":[]},{"id":1223,"title":"Renewal Light Riddle","category":"Other Readables","ko":"새해의 빛 수수께끼","total":10,"subtitles":["Renewal Light Riddle I","Renewal Light Riddle II","Renewal Light Riddle III","Renewal Light Riddle IV","Renewal Light Riddle V","Renewal Light Riddle VI","Renewal Light Riddle VII","Renewal Light Riddle VIII","Renewal Light Riddle IX","Renewal Light Riddle X"]}];
+
+// progress: {id(string): 1 | 0 | string[]}
+let progress = {};
+let bookData = [];
+let currentCatFilter = 'all';
+let showOnlyUncollected = false;
+let searchFiltered = null;
+
+// ===================== Storage =====================
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+}
+
+function saveProgress() {
+  localStorage.setItem(LS_KEY, JSON.stringify(progress));
+}
+
+// ===================== Book data =====================
+function buildBookData() {
+  bookData = MASTER.map(m => {
+    const val = progress[String(m.id)];
+    let collected, collected_subtitles;
+    if (Array.isArray(val)) {
+      collected_subtitles = val;
+      collected = val.length;
+    } else {
+      collected = val === 1 ? m.total : 0;
+      collected_subtitles = [];
+    }
+    return { ...m, collected, collected_subtitles };
+  });
+}
+
+// ===================== Render =====================
+function renderBookStats() {
+  const total = bookData.length;
+  const done = bookData.filter(b => {
+    const hasSubs = b.subtitles && b.subtitles.length > 0;
+    return hasSubs ? b.collected_subtitles.length >= b.subtitles.length : b.collected >= b.total;
+  }).length;
+  const partial = bookData.filter(b => {
+    const hasSubs = b.subtitles && b.subtitles.length > 0;
+    const col = hasSubs ? b.collected_subtitles.length : b.collected;
+    const tot = hasSubs ? b.subtitles.length : b.total;
+    return col > 0 && col < tot;
+  }).length;
+  const none = total - done - partial;
+  document.getElementById('bookStats').innerHTML =
+    `총 <span>${total}</span>개 &nbsp;` +
+    `<span class="stat-done">완료 ${done}</span> &nbsp;` +
+    `<span class="stat-partial">진행중 ${partial}</span> &nbsp;` +
+    `미수집 <span>${none}</span>`;
+}
+
+function setFilter(cat, btn) {
+  currentCatFilter = cat;
+  document.querySelectorAll('.book-filter .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  searchFiltered = null;
+  document.getElementById('bookSearch').value = '';
+  closeDropdown();
+  renderBookGrid();
+}
+
+function toggleCollectedFilter(btn) {
+  showOnlyUncollected = !showOnlyUncollected;
+  btn.classList.toggle('active', showOnlyUncollected);
+  renderBookGrid();
+}
+
+function renderBookGrid(filtered) {
+  const grid = document.getElementById('bookGrid');
+  let list = filtered !== undefined ? filtered : bookData;
+  if (currentCatFilter !== 'all') list = list.filter(b => b.category === currentCatFilter);
+  if (showOnlyUncollected) list = list.filter(b => {
+    const hasSubs = b.subtitles && b.subtitles.length > 0;
+    return hasSubs ? b.collected_subtitles.length === 0 : b.collected === 0;
+  });
+  if (!list.length) { grid.innerHTML = '<div class="empty-msg">항목 없음</div>'; return; }
+
+  grid.innerHTML = list.map(b => {
+    const hasSubs = b.subtitles && b.subtitles.length > 0;
+    const cs = b.collected_subtitles || [];
+    const isDone = hasSubs ? cs.length >= b.subtitles.length : b.collected >= b.total;
+    const isPartial = hasSubs
+      ? cs.length > 0 && cs.length < b.subtitles.length
+      : b.collected > 0 && b.collected < b.total;
+    const cardClass = (isDone ? 'done' : isPartial ? 'partial' : '') + (hasSubs ? ' has-subtitles' : '');
+    const progClass = isDone ? 'done' : isPartial ? 'partial' : 'none';
+    const catLabel = {'Books & Manuals':'📖 Books','Letters & Records':'✉️ Letters','Notices & Posters':'📄 Notices','Other Readables':'📜 Other'}[b.category] || b.category;
+    const col = hasSubs ? cs.length : b.collected;
+    const tot = hasSubs ? b.subtitles.length : b.total;
+    const checkHtml = !hasSubs
+      ? `<div class="book-check ${isDone ? 'done' : ''}">${isDone ? '✓' : ''}</div>`
+      : '';
+    const clickAttr = !hasSubs ? `onclick="toggleBook(${b.id})"` : '';
+    const subsHtml = hasSubs ? `
+      <div class="book-subtitles">
+        ${b.subtitles.map(s => {
+          const checked = cs.includes(s);
+          return `<div class="subtitle-item ${checked ? 'done' : ''}" onclick="toggleSub(${b.id},'${esc(s).replace(/'/g,"\'")}')">
+            <div class="subtitle-check ${checked ? 'done' : ''}">✓</div>
+            <span class="subtitle-label">${esc(s)}</span>
+          </div>`;
+        }).join('')}
+      </div>` : '';
+
+    return `<div class="book-card ${cardClass}" ${clickAttr}>
+      <div class="book-card-top">
+        <div>
+          <div class="book-ko">${esc(b.ko || b.title)}</div>
+          <div class="book-en">${esc(b.title)}</div>
+        </div>
+        ${checkHtml}
+      </div>
+      <div class="book-card-bottom">
+        <span class="book-cat">${catLabel}</span>
+        <span class="book-progress ${progClass}">${col}/${tot}</span>
+      </div>
+      ${subsHtml}
+    </div>`;
+  }).join('');
+}
+
+// ===================== Toggle =====================
+function toggleBook(id) {
+  const book = bookData.find(b => b.id === id);
+  if (!book) return;
+  const key = String(id);
+  if (book.collected >= book.total) {
+    progress[key] = 0;
+    book.collected = 0;
+  } else {
+    progress[key] = 1;
+    book.collected = book.total;
+  }
+  saveProgress();
+  renderBookGrid(searchFiltered !== null ? searchFiltered : undefined);
+  renderBookStats();
+}
+
+function toggleSub(id, subtitle) {
+  const book = bookData.find(b => b.id === id);
+  if (!book) return;
+  const key = String(id);
+  if (!book.collected_subtitles) book.collected_subtitles = [];
+  const idx = book.collected_subtitles.indexOf(subtitle);
+  if (idx >= 0) book.collected_subtitles.splice(idx, 1);
+  else book.collected_subtitles.push(subtitle);
+  book.collected = book.collected_subtitles.length;
+  progress[key] = [...book.collected_subtitles];
+  saveProgress();
+  renderBookGrid(searchFiltered !== null ? searchFiltered : undefined);
+  renderBookStats();
+}
+
+function openInfoModal() {
+  document.getElementById('modalInfo').classList.add('active');
+}
+function closeInfoModal() {
+  document.getElementById('modalInfo').classList.remove('active');
+}
+document.getElementById('modalInfo').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalInfo')) closeInfoModal();
+});
+
+function openResetModal() {
+  document.getElementById('modalReset').classList.add('active');
+}
+function closeResetModal() {
+  document.getElementById('modalReset').classList.remove('active');
+}
+function confirmReset() {
+  progress = {};
+  saveProgress();
+  buildBookData();
+  renderBookGrid();
+  renderBookStats();
+  closeResetModal();
+  showToast('초기화 완료');
+}
+
+document.getElementById('modalReset').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalReset')) closeResetModal();
+});
+
+// ===================== Search =====================
+function onBookSearch(val) {
+  const q = val.trim().toLowerCase();
+  const dd = document.getElementById('searchDropdown');
+  if (!q) { dd.classList.remove('open'); searchFiltered = null; renderBookGrid(); return; }
+  const results = bookData.filter(b =>
+    (b.ko && b.ko.toLowerCase().includes(q)) || b.title.toLowerCase().includes(q)
+  ).slice(0, 20);
+  if (!results.length) { dd.classList.remove('open'); searchFiltered = []; renderBookGrid([]); return; }
+  dd.innerHTML = results.map(b => {
+    const koHL = b.ko ? highlight(b.ko, q) : '';
+    const enHL = highlight(b.title, q);
+    const catIcon = {'Books & Manuals':'📖','Letters & Records':'✉️','Notices & Posters':'📄','Other Readables':'📜'}[b.category] || '';
+    return `<div class="search-item" onmousedown="selectSearch(${b.id})">
+      <div class="s-ko">${koHL || enHL}</div>
+      <div class="s-en">${koHL ? enHL : ''} <span class="s-cat">${catIcon}</span></div>
+    </div>`;
+  }).join('');
+  dd.classList.add('open');
+  searchFiltered = results;
+  renderBookGrid(results);
+}
+
+function highlight(str, q) {
+  const idx = str.toLowerCase().indexOf(q);
+  if (idx === -1) return esc(str);
+  return esc(str.slice(0,idx)) + '<span class="search-highlight">' + esc(str.slice(idx,idx+q.length)) + '</span>' + esc(str.slice(idx+q.length));
+}
+
+function selectSearch(id) {
+  const book = bookData.find(b => b.id === id);
+  if (!book) return;
+  document.getElementById('bookSearch').value = book.ko || book.title;
+  closeDropdown();
+  searchFiltered = [book];
+  renderBookGrid([book]);
+}
+
+function closeDropdown() {
+  document.getElementById('searchDropdown').classList.remove('open');
+}
+
+// ===================== Toast =====================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show';
+  setTimeout(() => { t.className = 'toast'; }, 2000);
+}
+
+// ===================== Util =====================
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ===================== Init =====================
+progress = loadProgress();
+buildBookData();
+renderBookGrid();
+renderBookStats();
+</script>
+</body>
+</html>
